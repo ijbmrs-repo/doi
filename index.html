@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>IJBMRS DOI Resolver</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f7f9fb;
+      color: #222;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #0b3c5d;
+      color: #fff;
+      padding: 30px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    header p {
+      margin-top: 8px;
+      font-size: 15px;
+      opacity: 0.9;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .search-box {
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .hint {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .results {
+      margin-top: 40px;
+    }
+
+    .result-card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .result-card h3 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    .doi {
+      font-family: monospace;
+      background: #f1f1f1;
+      padding: 6px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin: 5px 0;
+    }
+
+    footer {
+      margin-top: 60px;
+      padding: 20px;
+      text-align: center;
+      font-size: 13px;
+      color: #666;
+    }
+
+    footer a {
+      color: #0b3c5d;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>IJBMRS DOI Resolver</h1>
+  <p>Search and recover IJBMRS articles and their official DOIs</p>
+</header>
+
+<main>
+
+  <div class="search-box">
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Search by article title, author, keyword, or DOI…"
+    >
+    <div class="hint">
+      Example: <em>digital banking</em>, <em>Khan</em>, <em>1234567</em>
+    </div>
+  </div>
+
+  <div class="results" id="results">
+    <!-- search results will appear here -->
+  </div>
+
+</main>
+
+<footer>
+  <p>
+    IJBMRS internal DOIs redirect to official Zenodo DOIs.  
+    Zenodo remains the authoritative and citable identifier.
+  </p>
+  <p>
+    <a href="/dashboard.html">Editorial Metrics</a> ·
+    <a href="https://index.ijbmrs.org">IJBMRS Index</a>
+  </p>
+</footer>
+
+</body>
+</html>
