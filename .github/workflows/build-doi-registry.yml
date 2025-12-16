@@ -1,8 +1,8 @@
-name: Build DOI Registry (Debug)
+name: Build DOI Registry
 
 on:
   issues:
-    types: [opened, edited, closed, reopened]
+    types: [opened, edited, reopened]
   workflow_dispatch:
 
 permissions:
@@ -14,14 +14,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Debug – list issues
+      - name: Generate and publish DOI registry
         uses: actions/github-script@v7
         with:
           script: |
-            console.log("DEBUG: workflow started");
-
             const owner = context.repo.owner;
             const repo = context.repo.repo;
+            const path = "data/doi_registry.json";
 
             const issues = await github.paginate(
               github.rest.issues.listForRepo,
@@ -33,10 +32,57 @@ jobs:
               }
             );
 
-            console.log("DEBUG: issues found =", issues.length);
+            function extract(body, label) {
+              const lines = body.split(/\r?\n/).map(l => l.trim());
+              for (let i = 0; i < lines.length; i++) {
+                if (lines[i].toLowerCase().includes(label.toLowerCase())) {
+                  for (let j = i + 1; j < lines.length; j++) {
+                    if (lines[j]) return lines[j];
+                  }
+                }
+              }
+              return "";
+            }
+
+            const registry = {};
 
             for (const issue of issues) {
-              console.log("DEBUG ISSUE BODY:");
-              console.log(issue.body);
-              console.log("---- END ISSUE ----");
+              const body = issue.body || "";
+
+              const internal = extract(body, "Internal DOI Number");
+              if (!internal) continue;
+
+              registry[internal] = {
+                title: extract(body, "Article Title"),
+                authors: extract(body, "Authors"),
+                year: extract(body, "Publication Year"),
+                keywords: extract(body, "Keywords")
+                  .split(",")
+                  .map(k => k.trim())
+                  .filter(Boolean),
+                zenodo_doi: extract(body, "Official Zenodo DOI URL")
+              };
             }
+
+            const content = Buffer
+              .from(JSON.stringify(registry, null, 2))
+              .toString("base64");
+
+            let sha = null;
+            try {
+              const existing = await github.rest.repos.getContent({
+                owner,
+                repo,
+                path
+              });
+              sha = existing.data.sha;
+            } catch (e) {}
+
+            await github.rest.repos.createOrUpdateFileContents({
+              owner,
+              repo,
+              path,
+              message: "Auto-update DOI registry from GitHub issues",
+              content,
+              sha
+            });
