@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script>
+    const path = window.location.pathname.replace("/", "");
+    if (/^\d+$/.test(path)) {
+      window.location.replace(
+        "https://doi.org/10.5281/zenodo." + path
+      );
+    } else {
+      window.location.replace("/error.html");
+    }
+  </script>
+</head>
+<body></body>
+</html>
