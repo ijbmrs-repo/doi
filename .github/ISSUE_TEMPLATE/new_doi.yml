@@ -1,0 +1,52 @@
+name: New DOI Record
+description: Add a new article to the IJBMRS DOI system
+title: "[DOI] Article title here"
+labels: ["doi-record"]
+
+body:
+  - type: input
+    id: internal_doi
+    attributes:
+      label: Internal DOI Number
+      description: Numeric identifier used by IJBMRS (e.g. 3456789)
+      placeholder: "3456789"
+    validations:
+      required: true
+
+  - type: input
+    id: zenodo_doi
+    attributes:
+      label: Official Zenodo DOI URL
+      placeholder: "https://doi.org/10.5281/zenodo.xxxxxxx"
+    validations:
+      required: true
+
+  - type: input
+    id: title
+    attributes:
+      label: Article Title
+    validations:
+      required: true
+
+  - type: input
+    id: authors
+    attributes:
+      label: Authors
+      placeholder: "A. Khan, B. Singh"
+    validations:
+      required: true
+
+  - type: input
+    id: year
+    attributes:
+      label: Publication Year
+      placeholder: "2025"
+    validations:
+      required: true
+
+  - type: textarea
+    id: keywords
+    attributes:
+      label: Keywords
+      description: Separate keywords with commas
+      placeholder: "digital banking, fintech, africa"
