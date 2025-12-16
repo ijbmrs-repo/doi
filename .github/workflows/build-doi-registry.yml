@@ -2,7 +2,7 @@ name: Build DOI Registry
 
 on:
   issues:
-    types: [opened, edited, deleted, closed]
+    types: [opened, edited, closed, reopened]
   workflow_dispatch:
 
 permissions:
@@ -16,13 +16,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          persist-credentials: true
 
-      - name: Generate doi_registry.json from issues
+      - name: Build DOI registry from issues
         uses: actions/github-script@v7
         with:
           script: |
+            const fs = require("fs");
+
             const issues = await github.paginate(
               github.rest.issues.listForRepo,
               {
@@ -35,38 +35,39 @@ jobs:
 
             const registry = {};
 
+            function extract(body, field) {
+              const regex = new RegExp(
+                `### ${field}\\s*\\n([^\\n]+)`,
+                "i"
+              );
+              const match = body.match(regex);
+              return match ? match[1].trim() : "";
+            }
+
             for (const issue of issues) {
               const body = issue.body || "";
 
-              function getField(name) {
-                const match = body.match(
-                  new RegExp(`\\*\\*${name}\\*\\*\\s*\\n([^\\n]+)`)
-                );
-                return match ? match[1].trim() : "";
-              }
-
-              const internal = getField("Internal DOI Number");
+              const internal = extract(body, "Internal DOI Number");
               if (!internal) continue;
 
               registry[internal] = {
-                title: getField("Article Title"),
-                authors: getField("Authors"),
-                year: getField("Publication Year"),
-                keywords: getField("Keywords")
+                title: extract(body, "Article Title"),
+                authors: extract(body, "Authors"),
+                year: extract(body, "Publication Year"),
+                keywords: extract(body, "Keywords")
                   .split(",")
                   .map(k => k.trim())
                   .filter(Boolean),
-                zenodo_doi: getField("Official Zenodo DOI URL")
+                zenodo_doi: extract(body, "Official Zenodo DOI URL")
               };
             }
 
-            const fs = require("fs");
             fs.writeFileSync(
               "data/doi_registry.json",
               JSON.stringify(registry, null, 2)
             );
 
-      - name: Commit and push registry
+      - name: Commit and push changes
         run: |
           git config user.name "ijbmrs-bot"
           git config user.email "bot@ijbmrs.org"
