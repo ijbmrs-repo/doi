@@ -22,7 +22,7 @@ jobs:
             const repo = context.repo.repo;
             const path = "data/doi_registry.json";
 
-            // Fetch all open DOI issues
+            // Fetch all open issues with label "doi-record"
             const issues = await github.paginate(
               github.rest.issues.listForRepo,
               {
@@ -33,9 +33,10 @@ jobs:
               }
             );
 
+            // SAFE extractor (handles blank lines from Issue Forms)
             function extract(body, field) {
               const regex = new RegExp(
-                `### ${field}\\s*\\n([^\\n]+)`,
+                `### ${field}[\\s\\S]*?\\n([^\\n]+)`,
                 "i"
               );
               const match = body.match(regex);
@@ -46,6 +47,7 @@ jobs:
 
             for (const issue of issues) {
               const body = issue.body || "";
+
               const internal = extract(body, "Internal DOI Number");
               if (!internal) continue;
 
@@ -65,7 +67,6 @@ jobs:
               .from(JSON.stringify(registry, null, 2))
               .toString("base64");
 
-            // Get existing file SHA (if exists)
             let sha = null;
             try {
               const existing = await github.rest.repos.getContent({
@@ -74,11 +75,8 @@ jobs:
                 path
               });
               sha = existing.data.sha;
-            } catch (e) {
-              // file does not exist yet
-            }
+            } catch (e) {}
 
-            // Create or update file via GitHub API
             await github.rest.repos.createOrUpdateFileContents({
               owner,
               repo,
