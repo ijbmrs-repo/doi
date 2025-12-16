@@ -23,6 +23,10 @@ jobs:
           script: |
             const fs = require("fs");
 
+            // Ensure data directory exists
+            fs.mkdirSync("data", { recursive: true });
+
+            // Fetch all open issues with label "doi-record"
             const issues = await github.paginate(
               github.rest.issues.listForRepo,
               {
@@ -35,6 +39,7 @@ jobs:
 
             const registry = {};
 
+            // Helper to extract fields from GitHub Issue Form body
             function extract(body, field) {
               const regex = new RegExp(
                 `### ${field}\\s*\\n([^\\n]+)`,
@@ -67,7 +72,7 @@ jobs:
               JSON.stringify(registry, null, 2)
             );
 
-      - name: Commit and push changes
+      - name: Commit and push registry
         run: |
           git config user.name "ijbmrs-bot"
           git config user.email "bot@ijbmrs.org"
