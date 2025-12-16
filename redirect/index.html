@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IJBMRS DOI Redirect</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script>
+    (function () {
+      // Example URL:
+      // https://doi.ijbmrs.org/redirect/17781521
+
+      const parts = window.location.pathname.split("/").filter(Boolean);
+      const doiNumber = parts[parts.length - 1];
+
+      // Validate numeric DOI
+      if (!/^\d+$/.test(doiNumber)) {
+        window.location.replace("/error.html");
+        return;
+      }
+
+      const target = "https://doi.org/10.5281/zenodo." + doiNumber;
+      window.location.replace(target);
+    })();
+  </script>
+</head>
+
+<body>
+  <p>Redirecting to official DOI…</p>
+</body>
+</html>
