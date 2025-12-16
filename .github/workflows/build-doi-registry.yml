@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Build DOI registry from issues
         uses: actions/github-script@v7
@@ -26,7 +28,6 @@ jobs:
             // Ensure data directory exists
             fs.mkdirSync("data", { recursive: true });
 
-            // Fetch all open issues with label "doi-record"
             const issues = await github.paginate(
               github.rest.issues.listForRepo,
               {
@@ -39,7 +40,6 @@ jobs:
 
             const registry = {};
 
-            // Helper to extract fields from GitHub Issue Form body
             function extract(body, field) {
               const regex = new RegExp(
                 `### ${field}\\s*\\n([^\\n]+)`,
@@ -72,10 +72,13 @@ jobs:
               JSON.stringify(registry, null, 2)
             );
 
-      - name: Commit and push registry
+      - name: Commit and push registry safely
         run: |
           git config user.name "ijbmrs-bot"
           git config user.email "bot@ijbmrs.org"
+
           git add data/doi_registry.json
           git commit -m "Auto-update DOI registry from GitHub issues" || echo "No changes"
-          git push
+
+          git pull --rebase origin main
+          git push origin main
