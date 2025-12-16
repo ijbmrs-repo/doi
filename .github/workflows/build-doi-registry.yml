@@ -72,13 +72,14 @@ jobs:
               JSON.stringify(registry, null, 2)
             );
 
-      - name: Commit and push registry safely
+      - name: Commit and push registry (safe bot push)
         run: |
           git config user.name "ijbmrs-bot"
           git config user.email "bot@ijbmrs.org"
 
+          git pull --rebase origin main
+
           git add data/doi_registry.json
           git commit -m "Auto-update DOI registry from GitHub issues" || echo "No changes"
 
-          git pull --rebase origin main
-          git push origin main
+          git push --force-with-lease origin main
