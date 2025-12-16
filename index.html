@@ -5,194 +5,44 @@
   <title>IJBMRS DOI Resolver</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <script>
+    (function () {
+      // Get path without leading slash
+      const path = window.location.pathname.replace(/^\/+/, "");
+
+      // If no path, show landing message (optional)
+      if (!path) return;
+
+      // If numeric → redirect to Zenodo DOI
+      if (/^\d+$/.test(path)) {
+        window.location.replace(
+          "https://doi.org/10.5281/zenodo." + path
+        );
+        return;
+      }
+
+      // Anything else → error page
+      window.location.replace("/error.html");
+    })();
+  </script>
+
   <style>
     body {
-      margin: 0;
       font-family: Arial, Helvetica, sans-serif;
       background: #f5f7fa;
       color: #222;
-    }
-
-    header {
-      background: #0b3c5d;
-      color: #ffffff;
-      padding: 35px 20px;
       text-align: center;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 28px;
-      font-weight: normal;
-    }
-
-    header p {
-      margin-top: 8px;
-      font-size: 15px;
-      opacity: 0.9;
-    }
-
-    main {
-      max-width: 900px;
-      margin: 50px auto;
-      padding: 0 20px;
-    }
-
-    .search-box {
-      background: #ffffff;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    .search-box input {
-      width: 100%;
-      padding: 14px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    .hint {
-      margin-top: 10px;
-      font-size: 13px;
-      color: #666;
-    }
-
-    .results {
-      margin-top: 40px;
-    }
-
-    .result-card {
-      background: #ffffff;
-      padding: 20px;
-      border-radius: 6px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
-
-    .result-card h3 {
-      margin-top: 0;
-      font-size: 18px;
-    }
-
-    .doi {
-      font-family: monospace;
-      background: #f1f1f1;
-      padding: 6px 8px;
-      border-radius: 4px;
-      display: inline-block;
-      margin: 6px 0;
-      word-break: break-all;
-    }
-
-    footer {
-      margin-top: 80px;
-      padding: 20px;
-      text-align: center;
-      font-size: 13px;
-      color: #666;
-    }
-
-    footer a {
-      color: #0b3c5d;
-      text-decoration: none;
+      padding-top: 80px;
     }
   </style>
 </head>
 
 <body>
-
-<header>
   <h1>IJBMRS DOI Resolver</h1>
-  <p>Search and recover IJBMRS articles and their official DOIs</p>
-</header>
-
-<main>
-
-  <div class="search-box">
-    <input
-      type="text"
-      id="searchInput"
-      placeholder="Search by article title, author, keyword, or DOI…"
-    >
-    <div class="hint">
-      Example: <em>digital banking</em>, <em>Khan</em>, <em>17781521</em>
-    </div>
-  </div>
-
-  <div class="results" id="results"></div>
-
-</main>
-
-<footer>
   <p>
-    IJBMRS internal DOIs redirect to official Zenodo DOIs.  
-    Zenodo remains the authoritative and citable identifier.
+    Use an IJBMRS internal DOI number in the URL.<br><br>
+    Example:<br>
+    <strong>doi.ijbmrs.org/17781521</strong>
   </p>
-  <p>
-    <a href="https://index.ijbmrs.org">IJBMRS Index</a>
-  </p>
-</footer>
-
-<script>
-let registry = {};
-
-fetch("/data/doi_registry.json")
-  .then(res => res.json())
-  .then(data => registry = data)
-  .catch(() => registry = {});
-
-const input = document.getElementById("searchInput");
-const results = document.getElementById("results");
-
-input.addEventListener("input", () => {
-  const q = input.value.trim().toLowerCase();
-  results.innerHTML = "";
-
-  if (q.length < 2) return;
-
-  const entries = Object.entries(registry);
-
-  const matches = entries.filter(([doi, item]) => {
-    return (
-      doi.includes(q) ||
-      item.title.toLowerCase().includes(q) ||
-      item.authors.toLowerCase().includes(q) ||
-      item.keywords.join(" ").toLowerCase().includes(q)
-    );
-  });
-
-  if (matches.length === 0) {
-    results.innerHTML = "<p>No results found.</p>";
-    return;
-  }
-
-  matches.forEach(([doi, item]) => {
-    const div = document.createElement("div");
-    div.className = "result-card";
-
-    div.innerHTML = `
-      <h3>${item.title}</h3>
-      <p><strong>Authors:</strong> ${item.authors} (${item.year})</p>
-
-      <p><strong>IJBMRS DOI:</strong><br>
-        <span class="doi">
-          <a href="/IJBMRS/${doi}">doi.ijbmrs.org/IJBMRS/${doi}</a>
-        </span>
-      </p>
-
-      <p><strong>Official DOI:</strong><br>
-        <span class="doi">
-          <a href="${item.zenodo_doi}" target="_blank">${item.zenodo_doi}</a>
-        </span>
-      </p>
-    `;
-
-    results.appendChild(div);
-  });
-});
-</script>
-
 </body>
 </html>
