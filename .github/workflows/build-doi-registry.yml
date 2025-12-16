@@ -2,7 +2,7 @@ name: Build DOI Registry
 
 on:
   issues:
-    types: [opened, edited, reopened]
+    types: [opened, edited, reopened, labeled]
   workflow_dispatch:
 
 permissions:
@@ -22,12 +22,12 @@ jobs:
             const repo = context.repo.repo;
             const path = "data/doi_registry.json";
 
+            // Fetch ALL open issues (no label filter here)
             const issues = await github.paginate(
               github.rest.issues.listForRepo,
               {
                 owner,
                 repo,
-                labels: "doi-record",
                 state: "open"
               }
             );
@@ -47,8 +47,13 @@ jobs:
             const registry = {};
 
             for (const issue of issues) {
-              const body = issue.body || "";
+              // Only process issues with label "doi-record"
+              const hasLabel = issue.labels.some(
+                l => l.name === "doi-record"
+              );
+              if (!hasLabel) continue;
 
+              const body = issue.body || "";
               const internal = extract(body, "Internal DOI Number");
               if (!internal) continue;
 
