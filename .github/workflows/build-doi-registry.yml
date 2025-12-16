@@ -1,0 +1,69 @@
+name: Build DOI Registry
+
+on:
+  issues:
+    types: [opened, edited, deleted, closed]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate doi_registry.json from issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = await github.paginate(
+              github.rest.issues.listForRepo,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: "doi-record",
+                state: "open"
+              }
+            );
+
+            const registry = {};
+
+            for (const issue of issues) {
+              const body = issue.body || "";
+
+              function getField(name) {
+                const match = body.match(
+                  new RegExp(`\\*\\*${name}\\*\\*\\s*\\n([^\\n]+)`)
+                );
+                return match ? match[1].trim() : "";
+              }
+
+              const internal = getField("Internal DOI Number");
+              if (!internal) continue;
+
+              registry[internal] = {
+                title: getField("Article Title"),
+                authors: getField("Authors"),
+                year: getField("Publication Year"),
+                keywords: getField("Keywords")
+                  .split(",")
+                  .map(k => k.trim())
+                  .filter(Boolean),
+                zenodo_doi: getField("Official Zenodo DOI URL")
+              };
+            }
+
+            const fs = require("fs");
+            fs.writeFileSync(
+              "data/doi_registry.json",
+              JSON.stringify(registry, null, 2)
+            );
+
+      - name: Commit updated registry
+        run: |
+          git config user.name "ijbmrs-bot"
+          git config user.email "bot@ijbmrs.org"
+          git add data/doi_registry.json
+          git commit -m "Auto-update DOI registry from GitHub issues" || echo "No changes"
+          git push
