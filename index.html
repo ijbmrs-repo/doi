@@ -59,6 +59,33 @@
       color: #666;
     }
 
+    .results {
+      margin-top: 40px;
+    }
+
+    .result-card {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .result-card h3 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    .doi {
+      font-family: monospace;
+      background: #f1f1f1;
+      padding: 6px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin: 6px 0;
+      word-break: break-all;
+    }
+
     footer {
       margin-top: 80px;
       padding: 20px;
@@ -82,16 +109,20 @@
 </header>
 
 <main>
+
   <div class="search-box">
     <input
       type="text"
+      id="searchInput"
       placeholder="Search by article title, author, keyword, or DOI…"
-      disabled
     >
     <div class="hint">
-      Search will be enabled shortly.
+      Example: <em>digital banking</em>, <em>Khan</em>, <em>17781521</em>
     </div>
   </div>
+
+  <div class="results" id="results"></div>
+
 </main>
 
 <footer>
@@ -103,6 +134,65 @@
     <a href="https://index.ijbmrs.org">IJBMRS Index</a>
   </p>
 </footer>
+
+<script>
+let registry = {};
+
+fetch("/data/doi_registry.json")
+  .then(res => res.json())
+  .then(data => registry = data)
+  .catch(() => registry = {});
+
+const input = document.getElementById("searchInput");
+const results = document.getElementById("results");
+
+input.addEventListener("input", () => {
+  const q = input.value.trim().toLowerCase();
+  results.innerHTML = "";
+
+  if (q.length < 2) return;
+
+  const entries = Object.entries(registry);
+
+  const matches = entries.filter(([doi, item]) => {
+    return (
+      doi.includes(q) ||
+      item.title.toLowerCase().includes(q) ||
+      item.authors.toLowerCase().includes(q) ||
+      item.keywords.join(" ").toLowerCase().includes(q)
+    );
+  });
+
+  if (matches.length === 0) {
+    results.innerHTML = "<p>No results found.</p>";
+    return;
+  }
+
+  matches.forEach(([doi, item]) => {
+    const div = document.createElement("div");
+    div.className = "result-card";
+
+    div.innerHTML = `
+      <h3>${item.title}</h3>
+      <p><strong>Authors:</strong> ${item.authors} (${item.year})</p>
+
+      <p><strong>IJBMRS DOI:</strong><br>
+        <span class="doi">
+          <a href="/IJBMRS/${doi}">doi.ijbmrs.org/IJBMRS/${doi}</a>
+        </span>
+      </p>
+
+      <p><strong>Official DOI:</strong><br>
+        <span class="doi">
+          <a href="${item.zenodo_doi}" target="_blank">${item.zenodo_doi}</a>
+        </span>
+      </p>
+    `;
+
+    results.appendChild(div);
+  });
+});
+</script>
 
 </body>
 </html>
