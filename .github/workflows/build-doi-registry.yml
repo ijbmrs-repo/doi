@@ -5,6 +5,10 @@ on:
     types: [opened, edited, deleted, closed]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  issues: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,6 +16,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
       - name: Generate doi_registry.json from issues
         uses: actions/github-script@v7
@@ -60,7 +66,7 @@ jobs:
               JSON.stringify(registry, null, 2)
             );
 
-      - name: Commit updated registry
+      - name: Commit and push registry
         run: |
           git config user.name "ijbmrs-bot"
           git config user.email "bot@ijbmrs.org"
